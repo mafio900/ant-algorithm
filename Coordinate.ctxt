@@ -1,0 +1,19 @@
+#BlueJ class context
+comment0.target=Coordinate
+comment1.params=value
+comment1.target=Coordinate(int)
+comment2.params=value\ feromon
+comment2.target=Coordinate(int,\ double)
+comment3.params=value
+comment3.target=void\ setValue(int)
+comment4.params=
+comment4.target=int\ getValue()
+comment5.params=
+comment5.target=double\ getFeromon()
+comment6.params=feromon
+comment6.target=void\ setFeromon(double)
+comment7.params=
+comment7.target=boolean\ isVisited()
+comment8.params=visited
+comment8.target=void\ setVisited(boolean)
+numComments=9

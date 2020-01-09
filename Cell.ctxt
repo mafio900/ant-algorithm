@@ -1,0 +1,5 @@
+#BlueJ class context
+comment0.target=Cell
+comment1.params=row\ col
+comment1.target=Cell(int,\ int)
+numComments=2
