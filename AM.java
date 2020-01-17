@@ -116,6 +116,7 @@ public class AM
         return result.toString();
     }
     
+    //Wyświetlanie tablicy z feromonami
     public String toStringFeromon() {
         StringBuilder result = new StringBuilder(getWidth() * (getHeight() + 1));
         for (int row = 0; row < getHeight(); row++) {
@@ -153,6 +154,8 @@ public class AM
         }
         ArrayList<Double> weights = new ArrayList<Double>();
         ArrayList<Integer> where = new ArrayList<Integer>();
+        
+        //warunki dodania do listy feromonu pozostawionego na następnych polach
         if( antPosition.peek().col+1 < getWidth() && 
             !maze[antPosition.peek().row][antPosition.peek().col+1].isVisited() 
             && !isWall(antPosition.peek().row, antPosition.peek().col+1) 
@@ -185,9 +188,12 @@ public class AM
             weights.add(maze[row][col-1].getFeromon());
             where.add(3);
         }
-        System.out.println(weights.size());
+        //System.out.println(weights.size());
+        
+        //Losowanie liczby którą ścieżka podąży mrówka
         int r = randomIndex(weights, where);
         if(r>=0){
+            //Warunki sprawdzające która to była ścieżka oraz czy następna to nie jest meta jeżeli nie to wywołuje się ta funkcja ponownie
             if(r==0){
                 maze[antPosition.peek().row][antPosition.peek().col+1].setFeromon(FEROMONTOLEFT); 
                 if(isExit(antPosition.peek().row, antPosition.peek().col+1)){
@@ -221,6 +227,7 @@ public class AM
                 findPath(antPosition.peek().row, antPosition.peek().col-1, true);
             }
         }
+        //warunek else jeżeli nie znajdziemy żadnych ścieżek gdzie może iść mrówka cofa do ostatniego pola gdzie może być ścieżka
         else{
             
         }
