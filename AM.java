@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.*;
 import java.util.Stack;
 import java.util.Scanner;
 
@@ -10,16 +11,18 @@ public class AM
     private static final int PATH = 2;
     private static final int START = 3;
     private static final int EXIT = 4;
-    private double INITFEROMON = 1;
-    private double FEREMONVAPORATERATE = 0.5;
-    private double FEREMONTOLEFT = 4;
+    private double INITFEROMON = 8;
+    private double FEROMONVAPORATERATE = 0.5;
+    private double FEROMONTOLEFT = 4;
 
     public Coordinate[][] maze;
     private Stack<Cell> antPosition = new Stack<Cell>();
 
-    public AM()
+    public AM(double INITFEROMON, double FEROMONVAPORATERATE, double FEROMONTOLEFT)
     {
-
+        this.INITFEROMON = INITFEROMON;
+        this.FEROMONVAPORATERATE = FEROMONVAPORATERATE;
+        this.FEROMONTOLEFT = FEROMONTOLEFT;
     }
 
     public void setMaze(File maze) throws FileNotFoundException {
@@ -112,13 +115,33 @@ public class AM
         }
         return result.toString();
     }
+    
+    public String toStringFeromon() {
+        StringBuilder result = new StringBuilder(getWidth() * (getHeight() + 1));
+        for (int row = 0; row < getHeight(); row++) {
+            for (int col = 0; col < getWidth(); col++) {
+                result.append(maze[row][col].getFeromon());
+                result.append(' ');
+            }
+            result.append('\n');
+        }
+        result.append('\n');
+        result.append('\n');
+        return result.toString();
+    }
 
     public void solve(int iloscIteracji, int iloscMrowek){
         for(int i = 0; i < iloscIteracji; i++){
             for(int j = 0; j < iloscMrowek; j++){
-
                 findPath(0,0, true);
+                antPosition.clear();
             }
+            for (int row = 0; row < getHeight(); row++) {
+                for (int col = 0; col < getWidth(); col++) {
+                    maze[row][col].vaporateFeromon(FEROMONVAPORATERATE);
+                }
+            }
+            System.out.println(toStringFeromon());
             resetVisited();
         }
 
@@ -128,42 +151,95 @@ public class AM
         if(canPush){
             antPosition.push(new Cell(row,col));
         }
-        double suma = 0;
-        int i = 0;
-        boolean g=false,p=false,d=false,l=false;
-        if(!maze[antPosition.peek().row][antPosition.peek().col+1].isVisited() 
+        ArrayList<Double> weights = new ArrayList<Double>();
+        ArrayList<Integer> where = new ArrayList<Integer>();
+        if( antPosition.peek().col+1 < getWidth() && 
+            !maze[antPosition.peek().row][antPosition.peek().col+1].isVisited() 
             && !isWall(antPosition.peek().row, antPosition.peek().col+1) 
             && isValidLocation(antPosition.peek().row, antPosition.peek().col+1)){
                 
-            suma += maze[row][col+1].getFeromon();
-            i++;
-            p = true;
+            weights.add(maze[row][col+1].getFeromon());
+            where.add(0);
         }
-        if(!maze[antPosition.peek().row+1][antPosition.peek().col].isVisited() 
+        if( antPosition.peek().row+1 < getHeight() &&
+            !maze[antPosition.peek().row+1][antPosition.peek().col].isVisited() 
             && !isWall(antPosition.peek().row+1, antPosition.peek().col) 
             && isValidLocation(antPosition.peek().row+1, antPosition.peek().col)){
                 
-            suma += maze[row+1][col].getFeromon();
-            i++;
-            d = true;
+            weights.add(maze[row+1][col].getFeromon());
+            where.add(1);
         }
-        if(!maze[antPosition.peek().row-1][antPosition.peek().col].isVisited() 
+        if( antPosition.peek().row-1 >= 0 &&
+            !maze[antPosition.peek().row-1][antPosition.peek().col].isVisited() 
             && !isWall(antPosition.peek().row-1, antPosition.peek().col) 
             && isValidLocation(antPosition.peek().row-1, antPosition.peek().col)){
                 
-            suma += maze[row-1][col].getFeromon();
-            i++;
-            g = true;
+            weights.add(maze[row-1][col].getFeromon());
+            where.add(2);
         }
-        if(!maze[antPosition.peek().row][antPosition.peek().col-1].isVisited() 
+        if( antPosition.peek().col-1 >= 0 && 
+            !maze[antPosition.peek().row][antPosition.peek().col-1].isVisited() 
             && !isWall(antPosition.peek().row, antPosition.peek().col-1) 
             && isValidLocation(antPosition.peek().row, antPosition.peek().col-1)){
                 
-            suma += maze[row][col-1].getFeromon();
-            i++;
-            l = true;
+            weights.add(maze[row][col-1].getFeromon());
+            where.add(3);
         }
-        return true;
+        System.out.println(weights.size());
+        int r = randomIndex(weights, where);
+        if(r>=0){
+            if(r==0){
+                maze[antPosition.peek().row][antPosition.peek().col+1].setFeromon(FEROMONTOLEFT); 
+                if(isExit(antPosition.peek().row, antPosition.peek().col+1)){
+                    return true;
+                }
+                maze[antPosition.peek().row][antPosition.peek().col+1].setVisited(true); 
+                findPath(antPosition.peek().row, antPosition.peek().col+1, true);
+            }
+            else if(r==1){
+                maze[antPosition.peek().row+1][antPosition.peek().col].setFeromon(FEROMONTOLEFT); 
+                if(isExit(antPosition.peek().row+1, antPosition.peek().col)){
+                    return true;
+                }
+                maze[antPosition.peek().row+1][antPosition.peek().col].setVisited(true); 
+                findPath(antPosition.peek().row+1, antPosition.peek().col, true);
+            }
+            else if(r==2){
+                maze[antPosition.peek().row-1][antPosition.peek().col].setFeromon(FEROMONTOLEFT);
+                if(isExit(antPosition.peek().row-1, antPosition.peek().col)){
+                    return true;
+                }
+                maze[antPosition.peek().row-1][antPosition.peek().col].setVisited(true); 
+                findPath(antPosition.peek().row-1, antPosition.peek().col, true);
+            }
+            else if(r==3){
+                maze[antPosition.peek().row][antPosition.peek().col-1].setFeromon(FEROMONTOLEFT);
+                if(isExit(antPosition.peek().row, antPosition.peek().col+1)){
+                    return true;
+                }
+                maze[antPosition.peek().row][antPosition.peek().col-1].setVisited(true); 
+                findPath(antPosition.peek().row, antPosition.peek().col-1, true);
+            }
+        }
+        else{
+            
+        }
+        return false;
+    }
+    
+    private int randomIndex(ArrayList<Double> weights, ArrayList<Integer> where){
+        double sum = 0;
+        for(double x : weights)
+            sum += x;
+        
+        Random generator = new Random();
+        double r = generator.nextDouble()*sum;
+        for(int i=0; i<weights.size(); i++){
+            r -= weights.get(i);
+            if(r<=0)
+                return where.get(i);
+        }
+        return -1;
     }
 
     private void resetVisited(){

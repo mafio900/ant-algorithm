@@ -28,7 +28,11 @@ public class Coordinate {
     }
 
     void setFeromon(double feromon){
-        this.feromon = feromon;
+        this.feromon += feromon;
+    }
+    
+    void vaporateFeromon(double feromon){
+        this.feromon *= feromon;
     }
     
     boolean isVisited(){

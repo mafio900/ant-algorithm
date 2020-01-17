@@ -9,9 +9,9 @@ public class main
         System.out.println("Podaj wielkość labiryntu (8):");
         String name = scan.nextLine();
         File labirynt = new File(name+".txt");
-        AM mrufka = new AM();
+        AM mrufka = new AM(8, 0.5, 4); //(początkowa ilość feromonów, mnożnik wyparowania zawsze musi być mniejszy niż 1, ilość feromonu zostawionego przez mrówkę)
         mrufka.resetMaze();
-        mrufka.setMaze(labirynt);
-        System.out.println(mrufka);
+        mrufka.setMaze(labirynt); // podaj klase File jak o argument z labiryntem
+        mrufka.solve(10,1); // (ilość iteracji, ilość mrówek)
     }
 }
