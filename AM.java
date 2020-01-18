@@ -168,7 +168,6 @@ public class AM
         
         //Po wyłączeniu funkcja się kończy i zabija mrówkę
         boolean wlaczCofanie = true;
-        
         //warunki dodania do listy feromonu pozostawionego na następnych polach
         if( antPosition.peek().col+1 < getWidth() && 
             !maze[antPosition.peek().row][antPosition.peek().col+1].isVisited() 
@@ -244,7 +243,10 @@ public class AM
         
         //warunek else jeżeli nie znajdziemy żadnych ścieżek gdzie może iść mrówka cofa do ostatniego pola gdzie może być ścieżka
         else if(wlaczCofanie){
-            
+            antPosition.pop();
+            if(isStart(antPosition.peek().row, antPosition.peek().col))
+                return false;
+            findPath(antPosition.peek().row, antPosition.peek().col, false);
         }
         return false;
     }
