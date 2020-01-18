@@ -17,15 +17,19 @@ public class AM
     private float INITFEROMON = 8;
     private float FEROMONVAPORATERATE = 0.1f;
     private float FEROMONTOLEFT = 4;
+    
+    //Po wyłączeniu funkcja się kończy i zabija mrówkę
+    boolean wlaczCofanie = true;
 
     public Coordinate[][] maze;
     private Stack<Cell> antPosition = new Stack<Cell>();
 
-    public AM(float INITFEROMON, float FEROMONVAPORATERATE, float FEROMONTOLEFT)
+    public AM(float INITFEROMON, float FEROMONVAPORATERATE, float FEROMONTOLEFT, boolean wlaczCofanie)
     {
         this.INITFEROMON = INITFEROMON;
         this.FEROMONVAPORATERATE = FEROMONVAPORATERATE;
         this.FEROMONTOLEFT = FEROMONTOLEFT;
+        this.wlaczCofanie = wlaczCofanie;
     }
 
     public void setMaze(File maze) throws FileNotFoundException {
@@ -166,8 +170,6 @@ public class AM
         ArrayList<Float> weights = new ArrayList<Float>();
         ArrayList<Integer> where = new ArrayList<Integer>();
         
-        //Po wyłączeniu funkcja się kończy i zabija mrówkę
-        boolean wlaczCofanie = true;
         //warunki dodania do listy feromonu pozostawionego na następnych polach
         if( antPosition.peek().col+1 < getWidth() && 
             !maze[antPosition.peek().row][antPosition.peek().col+1].isVisited() 

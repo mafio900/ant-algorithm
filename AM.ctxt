@@ -1,7 +1,7 @@
 #BlueJ class context
 comment0.target=AM
-comment1.params=INITFEROMON\ FEROMONVAPORATERATE\ FEROMONTOLEFT
-comment1.target=AM(float,\ float,\ float)
+comment1.params=INITFEROMON\ FEROMONVAPORATERATE\ FEROMONTOLEFT\ wlaczCofanie
+comment1.target=AM(float,\ float,\ float,\ boolean)
 comment10.params=x\ y
 comment10.target=boolean\ isStart(int,\ int)
 comment11.params=row\ col
