@@ -1,11 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
-import java.util.Stack;
-import java.util.Scanner;
-import java.io.IOException;
-import java.lang.ProcessBuilder;
- 
 
 public class AM
 {
@@ -17,12 +12,14 @@ public class AM
     private float INITFEROMON = 8;
     private float FEROMONVAPORATERATE = 0.1f;
     private float FEROMONTOLEFT = 4;
-    
+
     //Po wyłączeniu funkcja się kończy i zabija mrówkę
     boolean wlaczCofanie = true;
 
     public Coordinate[][] maze;
+    public Coordinate[][] path;
     private Stack<Cell> antPosition = new Stack<Cell>();
+    WeightedRandomBag pp = new WeightedRandomBag();
 
     public AM(float INITFEROMON, float FEROMONVAPORATERATE, float FEROMONTOLEFT, boolean wlaczCofanie)
     {
@@ -54,13 +51,18 @@ public class AM
         String[] lines = text.split("[\r]?\n");
 
         maze = new Coordinate[lines.length][lines[0].length()-1];
+        path = new Coordinate[lines.length][lines[0].length()-1];
 
         for (int row = 0; row < getHeight(); row++) {
             for (int col = 0; col < getWidth(); col++) {
-                if (lines[row].charAt(col) == '1')
+                if (lines[row].charAt(col) == '1'){
                     maze[row][col] = new Coordinate(WALL);
-                else
+                    path[row][col] = new Coordinate(WALL);
+                }
+                else{
                     maze[row][col] = new Coordinate(ROAD, INITFEROMON);
+                    path[row][col] = new Coordinate(ROAD);
+                }
             }
         }
         maze[0][0] = new Coordinate(START, INITFEROMON);
@@ -122,9 +124,30 @@ public class AM
         }
         return result.toString();
     }
-    
+
+    public void printPath() {
+        for (int row = 0; row < getHeight(); row++) {
+            System.out.print("\t");
+            for (int col = 0; col < getWidth(); col++) {
+                if (maze[row][col].getValue() == ROAD) {
+                    System.out.print("0");
+                } else if (maze[row][col].getValue() == WALL) {
+                    System.out.print("1");
+                } else if (maze[row][col].getValue() == START) {
+                    System.out.print("3");
+                } else if (maze[row][col].getValue() == EXIT) {
+                    System.out.print("4");
+                } else {
+                    System.out.print("2");
+                }
+                System.out.print("\t");
+            }
+            System.out.print('\n');
+        }
+    }
+
     //Wyświetlanie tablicy z feromonami
-    public void showFeromonMaze() throws IOException {
+    public void showFeromonMaze() {
         System.out.print('\u000C');
         for (int row = 0; row < getHeight(); row++) {
             System.out.print("\t\t");
@@ -143,13 +166,18 @@ public class AM
         System.out.print('\n');
     }
 
-    public void solve(int iloscIteracji, int iloscMrowek) throws InterruptedException, IOException{
+    public void solve(int iloscIteracji, int iloscMrowek) throws InterruptedException{
         for(int i = 0; i < iloscIteracji; i++){
             for(int j = 0; j < iloscMrowek; j++){
                 resetVisited();
                 maze[0][0].setFeromon(FEROMONTOLEFT);
                 maze[0][0].setVisited(true); 
                 findPath(0,0, true);
+                while(!antPosition.isEmpty()){
+                    maze[antPosition.peek().row][antPosition.peek().col].setFeromon(FEROMONTOLEFT);
+                    antPosition.pop();
+                }
+                maze[getHeight()-1][getWidth()-1].setFeromon(FEROMONTOLEFT);
                 antPosition.clear();
             }
             for (int row = 0; row < getHeight(); row++) {
@@ -158,55 +186,51 @@ public class AM
                 }
             }
             showFeromonMaze();
-            Thread.sleep(1000);
-        }
 
+            //Thread.sleep(1000);
+        }
+        //printPath();
     }
 
     public boolean findPath(int row, int col, boolean canPush){
         if(canPush){
             antPosition.push(new Cell(row,col));
         }
-        ArrayList<Float> weights = new ArrayList<Float>();
-        ArrayList<Integer> where = new ArrayList<Integer>();
-        
+
         //warunki dodania do listy feromonu pozostawionego na następnych polach
         if( antPosition.peek().col+1 < getWidth() && 
-            !maze[antPosition.peek().row][antPosition.peek().col+1].isVisited() 
-            && !isWall(antPosition.peek().row, antPosition.peek().col+1) 
-            && isValidLocation(antPosition.peek().row, antPosition.peek().col+1)){
-                
-            weights.add((float)maze[row][col+1].getFeromon());
-            where.add(0);
+        !maze[antPosition.peek().row][antPosition.peek().col+1].isVisited() 
+        && !isWall(antPosition.peek().row, antPosition.peek().col+1) 
+        && isValidLocation(antPosition.peek().row, antPosition.peek().col+1)){
+
+            pp.addEntry(0, maze[row][col+1].getFeromon());
         }
         if( antPosition.peek().row+1 < getHeight() &&
-            !maze[antPosition.peek().row+1][antPosition.peek().col].isVisited() 
-            && !isWall(antPosition.peek().row+1, antPosition.peek().col) 
-            && isValidLocation(antPosition.peek().row+1, antPosition.peek().col)){
-                
-            weights.add((float)maze[row+1][col].getFeromon());
-            where.add(1);
+        !maze[antPosition.peek().row+1][antPosition.peek().col].isVisited() 
+        && !isWall(antPosition.peek().row+1, antPosition.peek().col) 
+        && isValidLocation(antPosition.peek().row+1, antPosition.peek().col)){
+
+            pp.addEntry(1, maze[row+1][col].getFeromon());
         }
         if( antPosition.peek().row-1 >= 0 &&
-            !maze[antPosition.peek().row-1][antPosition.peek().col].isVisited() 
-            && !isWall(antPosition.peek().row-1, antPosition.peek().col) 
-            && isValidLocation(antPosition.peek().row-1, antPosition.peek().col)){
-                
-            weights.add((float)maze[row-1][col].getFeromon());
-            where.add(2);
+        !maze[antPosition.peek().row-1][antPosition.peek().col].isVisited() 
+        && !isWall(antPosition.peek().row-1, antPosition.peek().col) 
+        && isValidLocation(antPosition.peek().row-1, antPosition.peek().col)){
+
+            pp.addEntry(2, maze[row-1][col].getFeromon());
         }
         if( antPosition.peek().col-1 >= 0 && 
-            !maze[antPosition.peek().row][antPosition.peek().col-1].isVisited() 
-            && !isWall(antPosition.peek().row, antPosition.peek().col-1) 
-            && isValidLocation(antPosition.peek().row, antPosition.peek().col-1)){
-                
-            weights.add((float)maze[row][col-1].getFeromon());
-            where.add(3);
+        !maze[antPosition.peek().row][antPosition.peek().col-1].isVisited() 
+        && !isWall(antPosition.peek().row, antPosition.peek().col-1) 
+        && isValidLocation(antPosition.peek().row, antPosition.peek().col-1)){
+
+            pp.addEntry(3, maze[row][col-1].getFeromon());
         }
-        //System.out.println(weights.size());
-        
+
         //Losowanie liczby którą ścieżka podąży mrówka
-        int r = randomIndex(weights, where);
+        int r = pp.getRandom();
+        pp.entries.clear();
+        pp.accumulatedWeight = 0;
         if(r>=0){
             //Warunki sprawdzające która to była ścieżka oraz czy następna to nie jest meta jeżeli nie to wywołuje się ta funkcja ponownie
             if(r==0){
@@ -242,30 +266,15 @@ public class AM
                 findPath(antPosition.peek().row, antPosition.peek().col-1, true);
             }
         }
-        
+
         //warunek else jeżeli nie znajdziemy żadnych ścieżek gdzie może iść mrówka cofa do ostatniego pola gdzie może być ścieżka
         else if(wlaczCofanie){
-            antPosition.pop();
             if(isStart(antPosition.peek().row, antPosition.peek().col))
                 return false;
+            antPosition.pop();
             findPath(antPosition.peek().row, antPosition.peek().col, false);
         }
         return false;
-    }
-    
-    private int randomIndex(ArrayList<Float> weights, ArrayList<Integer> where){
-        double sum = 0;
-        for(double x : weights)
-            sum += x;
-        
-        Random generator = new Random();
-        double r = generator.nextDouble()*sum;
-        for(int i=0; i<weights.size(); i++){
-            r -= weights.get(i);
-            if(r<=0)
-                return where.get(i);
-        }
-        return -1;
     }
 
     private void resetVisited(){
@@ -276,5 +285,4 @@ public class AM
         }
     }
 
-    
 }

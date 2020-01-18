@@ -1,0 +1,7 @@
+#BlueJ class context
+comment0.target=WeightedRandomBag
+comment1.params=object\ weight
+comment1.target=void\ addEntry(int,\ double)
+comment2.params=
+comment2.target=int\ getRandom()
+numComments=3

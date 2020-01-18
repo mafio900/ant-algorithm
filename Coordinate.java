@@ -35,6 +35,10 @@ public class Coordinate {
         this.feromon *= feromon;
     }
     
+    void removeFeromon(float feromon){
+        this.feromon /= feromon;
+    }
+    
     boolean isVisited(){
         return this.visited;
     }
