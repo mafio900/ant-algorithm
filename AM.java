@@ -3,6 +3,9 @@ import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.Stack;
 import java.util.Scanner;
+import java.io.IOException;
+import java.lang.ProcessBuilder;
+ 
 
 public class AM
 {
@@ -11,14 +14,14 @@ public class AM
     private static final int PATH = 2;
     private static final int START = 3;
     private static final int EXIT = 4;
-    private double INITFEROMON = 8;
-    private double FEROMONVAPORATERATE = 0.5;
-    private double FEROMONTOLEFT = 4;
+    private float INITFEROMON = 8;
+    private float FEROMONVAPORATERATE = 0.1f;
+    private float FEROMONTOLEFT = 4;
 
     public Coordinate[][] maze;
     private Stack<Cell> antPosition = new Stack<Cell>();
 
-    public AM(double INITFEROMON, double FEROMONVAPORATERATE, double FEROMONTOLEFT)
+    public AM(float INITFEROMON, float FEROMONVAPORATERATE, float FEROMONTOLEFT)
     {
         this.INITFEROMON = INITFEROMON;
         this.FEROMONVAPORATERATE = FEROMONVAPORATERATE;
@@ -117,23 +120,31 @@ public class AM
     }
     
     //Wyświetlanie tablicy z feromonami
-    public String toStringFeromon() {
-        StringBuilder result = new StringBuilder(getWidth() * (getHeight() + 1));
+    public void showFeromonMaze() throws IOException {
+        System.out.print('\u000C');
         for (int row = 0; row < getHeight(); row++) {
+            System.out.print("\t\t");
             for (int col = 0; col < getWidth(); col++) {
-                result.append(maze[row][col].getFeromon());
-                result.append(' ');
+                if(maze[row][col].getValue() != WALL){
+                    System.out.printf("%.3f", (float)maze[row][col].getFeromon());
+                }
+                else{
+                    System.out.print("WWW");
+                }
+                System.out.print("\t\t");
             }
-            result.append('\n');
+            System.out.print("\n\n\n");
         }
-        result.append('\n');
-        result.append('\n');
-        return result.toString();
+        System.out.print('\n');
+        System.out.print('\n');
     }
 
-    public void solve(int iloscIteracji, int iloscMrowek){
+    public void solve(int iloscIteracji, int iloscMrowek) throws InterruptedException, IOException{
         for(int i = 0; i < iloscIteracji; i++){
             for(int j = 0; j < iloscMrowek; j++){
+                resetVisited();
+                maze[0][0].setFeromon(FEROMONTOLEFT);
+                maze[0][0].setVisited(true); 
                 findPath(0,0, true);
                 antPosition.clear();
             }
@@ -142,8 +153,8 @@ public class AM
                     maze[row][col].vaporateFeromon(FEROMONVAPORATERATE);
                 }
             }
-            System.out.println(toStringFeromon());
-            resetVisited();
+            showFeromonMaze();
+            Thread.sleep(1000);
         }
 
     }
@@ -152,8 +163,11 @@ public class AM
         if(canPush){
             antPosition.push(new Cell(row,col));
         }
-        ArrayList<Double> weights = new ArrayList<Double>();
+        ArrayList<Float> weights = new ArrayList<Float>();
         ArrayList<Integer> where = new ArrayList<Integer>();
+        
+        //Po wyłączeniu funkcja się kończy i zabija mrówkę
+        boolean wlaczCofanie = true;
         
         //warunki dodania do listy feromonu pozostawionego na następnych polach
         if( antPosition.peek().col+1 < getWidth() && 
@@ -161,7 +175,7 @@ public class AM
             && !isWall(antPosition.peek().row, antPosition.peek().col+1) 
             && isValidLocation(antPosition.peek().row, antPosition.peek().col+1)){
                 
-            weights.add(maze[row][col+1].getFeromon());
+            weights.add((float)maze[row][col+1].getFeromon());
             where.add(0);
         }
         if( antPosition.peek().row+1 < getHeight() &&
@@ -169,7 +183,7 @@ public class AM
             && !isWall(antPosition.peek().row+1, antPosition.peek().col) 
             && isValidLocation(antPosition.peek().row+1, antPosition.peek().col)){
                 
-            weights.add(maze[row+1][col].getFeromon());
+            weights.add((float)maze[row+1][col].getFeromon());
             where.add(1);
         }
         if( antPosition.peek().row-1 >= 0 &&
@@ -177,7 +191,7 @@ public class AM
             && !isWall(antPosition.peek().row-1, antPosition.peek().col) 
             && isValidLocation(antPosition.peek().row-1, antPosition.peek().col)){
                 
-            weights.add(maze[row-1][col].getFeromon());
+            weights.add((float)maze[row-1][col].getFeromon());
             where.add(2);
         }
         if( antPosition.peek().col-1 >= 0 && 
@@ -185,7 +199,7 @@ public class AM
             && !isWall(antPosition.peek().row, antPosition.peek().col-1) 
             && isValidLocation(antPosition.peek().row, antPosition.peek().col-1)){
                 
-            weights.add(maze[row][col-1].getFeromon());
+            weights.add((float)maze[row][col-1].getFeromon());
             where.add(3);
         }
         //System.out.println(weights.size());
@@ -227,14 +241,15 @@ public class AM
                 findPath(antPosition.peek().row, antPosition.peek().col-1, true);
             }
         }
+        
         //warunek else jeżeli nie znajdziemy żadnych ścieżek gdzie może iść mrówka cofa do ostatniego pola gdzie może być ścieżka
-        else{
+        else if(wlaczCofanie){
             
         }
         return false;
     }
     
-    private int randomIndex(ArrayList<Double> weights, ArrayList<Integer> where){
+    private int randomIndex(ArrayList<Float> weights, ArrayList<Integer> where){
         double sum = 0;
         for(double x : weights)
             sum += x;

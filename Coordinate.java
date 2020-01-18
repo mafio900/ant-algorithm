@@ -1,6 +1,6 @@
 public class Coordinate {
     private int value;
-    private double feromon;
+    private float feromon;
     private boolean visited;
 
     public Coordinate(int value) {
@@ -9,7 +9,7 @@ public class Coordinate {
         this.visited = false;
     }
 
-    public Coordinate(int value, double feromon) {
+    public Coordinate(int value, float feromon) {
         this.value = value;
         this.feromon = feromon;
         this.visited = false;
@@ -27,11 +27,11 @@ public class Coordinate {
         return this.feromon;
     }
 
-    void setFeromon(double feromon){
+    void setFeromon(float feromon){
         this.feromon += feromon;
     }
     
-    void vaporateFeromon(double feromon){
+    void vaporateFeromon(float feromon){
         this.feromon *= feromon;
     }
     
