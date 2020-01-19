@@ -12,6 +12,8 @@ public class AM
     private float INITFEROMON = 8;
     private float FEROMONVAPORATERATE = 0.1f;
     private float FEROMONTOLEFT = 4;
+    
+    public int iloscKrokow = 0;
 
     //Po wyłączeniu funkcja się kończy i zabija mrówkę
     boolean wlaczCofanie = true;
@@ -173,11 +175,6 @@ public class AM
                 maze[0][0].setFeromon(FEROMONTOLEFT);
                 maze[0][0].setVisited(true); 
                 findPath(0,0, true);
-                while(!antPosition.isEmpty()){
-                    maze[antPosition.peek().row][antPosition.peek().col].setFeromon(FEROMONTOLEFT);
-                    antPosition.pop();
-                }
-                maze[getHeight()-1][getWidth()-1].setFeromon(FEROMONTOLEFT);
                 antPosition.clear();
             }
             for (int row = 0; row < getHeight(); row++) {
@@ -196,7 +193,7 @@ public class AM
         if(canPush){
             antPosition.push(new Cell(row,col));
         }
-
+        iloscKrokow++;
         //warunki dodania do listy feromonu pozostawionego na następnych polach
         if( antPosition.peek().col+1 < getWidth() && 
         !maze[antPosition.peek().row][antPosition.peek().col+1].isVisited() 

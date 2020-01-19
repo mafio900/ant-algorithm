@@ -16,5 +16,7 @@ public class main
         mrufka.resetMaze();
         mrufka.setMaze(labirynt); // podaj klase File jak o argument z labiryntem
         mrufka.solve(10,50); // (ilość iteracji, ilość mrówek)
+        
+        System.out.println("\nIlość kroków: "+mrufka.iloscKrokow);
     }
 }
